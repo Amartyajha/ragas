@@ -137,12 +137,11 @@ def similarity(
     if mode == SimilarityMode.EUCLIDEAN:
         # Using -euclidean distance as similarity to achieve same ranking order
         return -float(np.linalg.norm(np.array(embedding1) - np.array(embedding2)))
-    elif mode == SimilarityMode.DOT_PRODUCT:
+    if mode == SimilarityMode.DOT_PRODUCT:
         return np.dot(embedding1, embedding2)
-    else:
-        product = np.dot(embedding1, embedding2)
-        norm = np.linalg.norm(embedding1) * np.linalg.norm(embedding2)
-        return product / norm
+    product = np.dot(embedding1, embedding2)
+    norm = np.linalg.norm(embedding1) * np.linalg.norm(embedding2)
+    return product / norm
 
 
 default_similarity_fns = similarity
@@ -304,19 +303,15 @@ class InMemoryDocumentStore(DocumentStore):
                 next_doc = self.nodes[index + 1]
                 if next_doc.filename == node.filename:
                     return next_doc
-                else:
-                    return None
-            else:
                 return None
+            return None
         if direction == Direction.PREV:
             if index > 0:
                 prev_doc = self.nodes[index - 1]
                 if prev_doc.filename == node.filename:
                     return prev_doc
-                else:
-                    return None
-            else:
                 return None
+            return None
 
     def set_run_config(self, run_config: RunConfig):
         if self.embeddings:

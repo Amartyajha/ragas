@@ -36,9 +36,7 @@ MULTIPLE_COMPLETION_SUPPORTED = [
 
 def is_multiple_completion_supported(llm: BaseLanguageModel) -> bool:
     """Return whether the given LLM supports n-completion."""
-    for llm_type in MULTIPLE_COMPLETION_SUPPORTED:
-        if isinstance(llm, llm_type):
-            return True
+    return any(isinstance(llm, llm_type) for llm_type in MULTIPLE_COMPLETION_SUPPORTED)
     return False
 
 
@@ -96,18 +94,17 @@ class BaseRagasLLM(ABC):
                 stop=stop,
                 callbacks=callbacks,
             )
-        else:
-            loop = asyncio.get_event_loop()
-            generate_text_with_retry = add_retry(self.generate_text, self.run_config)
-            generate_text = partial(
-                generate_text_with_retry,
-                prompt=prompt,
-                n=n,
-                temperature=temperature,
-                stop=stop,
-                callbacks=callbacks,
-            )
-            return await loop.run_in_executor(None, generate_text)
+        loop = asyncio.get_event_loop()
+        generate_text_with_retry = add_retry(self.generate_text, self.run_config)
+        generate_text = partial(
+            generate_text_with_retry,
+            prompt=prompt,
+            n=n,
+            temperature=temperature,
+            stop=stop,
+            callbacks=callbacks,
+        )
+        return await loop.run_in_executor(None, generate_text)
 
 
 class LangchainLLMWrapper(BaseRagasLLM):
@@ -143,18 +140,17 @@ class LangchainLLMWrapper(BaseRagasLLM):
                 stop=stop,
                 callbacks=callbacks,
             )
-        else:
-            result = self.langchain_llm.generate_prompt(
-                prompts=[prompt] * n,
-                temperature=temperature,
-                stop=stop,
-                callbacks=callbacks,
-            )
-            # make LLMResult.generation appear as if it was n_completions
-            # note that LLMResult.runs is still a list that represents each run
-            generations = [[g[0] for g in result.generations]]
-            result.generations = generations
-            return result
+        result = self.langchain_llm.generate_prompt(
+            prompts=[prompt] * n,
+            temperature=temperature,
+            stop=stop,
+            callbacks=callbacks,
+        )
+        # make LLMResult.generation appear as if it was n_completions
+        # note that LLMResult.runs is still a list that represents each run
+        generations = [[g[0] for g in result.generations]]
+        result.generations = generations
+        return result
 
     async def agenerate_text(
         self,
@@ -173,26 +169,23 @@ class LangchainLLMWrapper(BaseRagasLLM):
                 stop=stop,
                 callbacks=callbacks,
             )
-        else:
-            result = await self.langchain_llm.agenerate_prompt(
-                prompts=[prompt] * n,
-                temperature=temperature,
-                stop=stop,
-                callbacks=callbacks,
-            )
-            # make LLMResult.generation appear as if it was n_completions
-            # note that LLMResult.runs is still a list that represents each run
-            generations = [[g[0] for g in result.generations]]
-            result.generations = generations
-            return result
+        result = await self.langchain_llm.agenerate_prompt(
+            prompts=[prompt] * n,
+            temperature=temperature,
+            stop=stop,
+            callbacks=callbacks,
+        )
+        # make LLMResult.generation appear as if it was n_completions
+        # note that LLMResult.runs is still a list that represents each run
+        generations = [[g[0] for g in result.generations]]
+        result.generations = generations
+        return result
 
     def set_run_config(self, run_config: RunConfig):
         self.run_config = run_config
 
         # configure if using OpenAI API
-        if isinstance(self.langchain_llm, BaseOpenAI) or isinstance(
-            self.langchain_llm, ChatOpenAI
-        ):
+        if isinstance(self.langchain_llm, (BaseOpenAI, ChatOpenAI)):
             try:
                 from openai import RateLimitError
             except ImportError:

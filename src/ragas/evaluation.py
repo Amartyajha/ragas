@@ -213,9 +213,7 @@ def evaluate(
 
         # convert results to dataset_like
         for i, _ in enumerate(dataset):
-            s = {}
-            for j, m in enumerate(metrics):
-                s[m.name] = results[len(metrics) * i + j]
+            s = {m.name: results[len(metrics) * i + j] for (j, m) in enumerate(metrics)}
             scores.append(s)
             # close the row chain
             row_rm, row_group_cm = row_run_managers[i]
@@ -286,4 +284,4 @@ class Result(dict):
     def __repr__(self) -> str:
         scores = self.copy()
         score_strs = [f"'{k}': {v:0.4f}" for k, v in scores.items()]
-        return "{" + ", ".join(score_strs) + "}"
+        return f"{{{', '.join(score_strs)}}}"

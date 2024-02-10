@@ -55,8 +55,7 @@ def silent(func: t.Callable[P, T]) -> t.Callable[P, T]:  # pragma: no cover
                         "Tracking Error: %s", err, stack_info=True, stacklevel=3
                     )
                     raise err
-                else:
-                    logger.info("Tracking Error: %s", err)
+                logger.info("Tracking Error: %s", err)
             else:
                 logger.debug("Tracking Error: %s", err)
 
@@ -71,9 +70,9 @@ def get_userid() -> str:
     if os.path.exists(uuid_filepath):
         user_id = json.load(open(uuid_filepath))["userid"]
     else:
-        user_id = "a-" + uuid.uuid4().hex
+        user_id = f'a-{uuid.uuid4().hex}'
         os.makedirs(user_id_path)
-        with open(uuid_filepath, "w") as f:
+        with open(uuid_filepath, 'w', encoding='utf-8') as f:
             json.dump({"userid": user_id}, f)
     return user_id
 

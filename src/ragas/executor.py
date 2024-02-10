@@ -61,10 +61,9 @@ class Runner(threading.Thread):
             except Exception as e:
                 if self.raise_exceptions:
                     raise e
-                else:
-                    logger.error(
-                        "Runner in Executor raised an exception", exc_info=True
-                    )
+                logger.error(
+                    "Runner in Executor raised an exception", exc_info=True
+                )
             results.append(r)
 
         return results
@@ -116,8 +115,7 @@ class Executor:
                 raise RuntimeError(
                     "Executor failed to complete. Please check logs above for full info."
                 )
-            else:
-                logger.error("Executor failed to complete. Please check logs above.")
-                return []
+            logger.error("Executor failed to complete. Please check logs above.")
+            return []
         sorted_results = sorted(executor_job.results, key=lambda x: x[0])
         return [r[1] for r in sorted_results]
