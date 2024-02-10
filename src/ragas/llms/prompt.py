@@ -91,7 +91,7 @@ class Prompt(BaseModel):
         """
         Generate the prompt string from the variables.
         """
-        prompt_str = self.instruction + "\n"
+        prompt_str = f'{self.instruction}\n'
 
         if self.examples:
             # Format the examples to match the Langchain prompt template
@@ -194,9 +194,7 @@ class Prompt(BaseModel):
                     output_keys.append([get_all_keys(item) for item in output])
 
         # NOTE: this is a slow loop, consider Executor to fasten this
-        results = []
-        for p in prompts:
-            results.append(llm.generate_text(p).generations[0][0].text)
+        results = [llm.generate_text(p).generations[0][0].text for p in prompts]
         per_example_items = len(self.input_keys) + 1
         grouped_results = [
             results[i : i + per_example_items]
@@ -206,15 +204,7 @@ class Prompt(BaseModel):
             self.examples
         ), "examples and adapted examples must be of equal length"
         for i, example in enumerate(grouped_results):
-            example_dict = {}
-            example_dict.update(
-                {k: v for k, v in zip(self.input_keys, example[: len(self.input_keys)])}
-            )
-            example_dict[self.output_key] = (
-                json_loader._safe_load(example[-1], llm)
-                if self.output_type.lower() == "json"
-                else example[-1]
-            )
+            example_dict = {**dict(zip(self.input_keys, example[:len(self.input_keys)])), self.output_key: json_loader._safe_load(example[-1], llm) if self.output_type.lower() == "json" else example[-1]}
 
             if self.output_type.lower() == "json":
                 output = example_dict[self.output_key]
@@ -242,7 +232,7 @@ class Prompt(BaseModel):
             os.makedirs(cache_dir)
 
         cache_path = os.path.join(cache_dir, f"{self.name}.json")
-        with open(cache_path, "w") as file:
+        with open(cache_path, 'w', encoding='utf-8') as file:
             json.dump(self.dict(), file, indent=4)
 
     @classmethod

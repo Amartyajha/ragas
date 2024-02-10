@@ -31,12 +31,11 @@ class BaseRagasEmbeddings(Embeddings, ABC):
                 self.aembed_documents, self.run_config
             )
             return await aembed_documents_with_retry(texts)
-        else:
-            loop = asyncio.get_event_loop()
-            embed_documents_with_retry = add_retry(
-                self.embed_documents, self.run_config
-            )
-            return await loop.run_in_executor(None, embed_documents_with_retry, texts)
+        loop = asyncio.get_event_loop()
+        embed_documents_with_retry = add_retry(
+            self.embed_documents, self.run_config
+        )
+        return await loop.run_in_executor(None, embed_documents_with_retry, texts)
 
     def set_run_config(self, run_config: RunConfig):
         self.run_config = run_config
