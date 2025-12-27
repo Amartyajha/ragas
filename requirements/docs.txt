@@ -5,3 +5,4 @@ sphinx_design
 astroid<3
 myst-nb
 llama_index
+marshmallow>=3.26.2 # not directly required, pinned by Snyk to avoid a vulnerability
