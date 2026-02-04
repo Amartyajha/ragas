@@ -2,3 +2,4 @@ pytest
 pytest-xdist[psutil]
 pytest-asyncio
 llama_index
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
